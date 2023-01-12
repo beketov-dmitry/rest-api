@@ -2,9 +2,12 @@ const form = document.querySelector("form");
 const success = document.querySelector("#upload");
 const unzip = document.querySelector("#UnZip");
 const successUnZip = document.querySelector("#successUnZip");
-
+const downloadButton = document.querySelector("#downloadResult");
+const result = document.querySelector(".result-item");
 
 const state = {
+    isZipped: false,
+    currentFile: null
 }
 
 
@@ -20,7 +23,10 @@ form.addEventListener("submit", async (e) => {
     success.classList.remove("d-none");
     success.innerHTML += " size: " + result.size;
 
-    state.uploadFile = result.fileName;
+    state.currentFile = result.fileName;
+    if(result.fileName.split('.') === "zip"){
+        state.isZipped = true;
+    }
         // success.classList.remove("d-none", "text-success ");
         // success.classList.add("text-danger");
         // success.innerHTML = "file not fount ";
@@ -30,17 +36,28 @@ form.addEventListener("submit", async (e) => {
 
 unzip.addEventListener("click", async () => {
 
-    const response = await fetch("/unZip", {
-        method: "POST",
-        body: state.uploadFile
-    })
+    if(state.isZipped) {
+        const response = await fetch("/unZip", {
+            method: "POST",
+            body: state.currentFile
+        })
 
+        const data = await response.json();
+        state.currentFile = data.fileName;
+        state.isZipped = false;
+        successUnZip.classList.remove("d-none");
+    } else {
+        successUnZip.classList.remove("d-none", "text-success");
+        successUnZip.classList.add("text-danger");
+        successUnZip.innerHTML = "not archivate"
+    }
+})
+
+downloadButton.addEventListener("click", async () => {
+    const response = await fetch("/downloadFile/" + state.unarchivateFile);
     const data = await response.json();
-    state.unarchivateFile = data.fileName;
-
-    successUnZip.classList.remove("d-none");
-
-    console.log(data);
+    result.innerHTML = data;
+    console.log(data)
 })
 
 
