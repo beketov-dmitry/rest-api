@@ -8,7 +8,7 @@ const decryptButton = document.querySelector("#Decrypt");
 const successDecrypt = document.querySelector("#successDecrypt");
 const calculateButton = document.querySelector("#Calculate");
 const successCalculate =  document.querySelector("#successCalculate");
-
+const currentFileElem = document.querySelector("#currentFile");
 
 const state = {
     isValid: false,
@@ -17,7 +17,8 @@ const state = {
     validExt: ["txt", "zip", "json", "xml"]
 }
 
-const isValid = (currentFile) => {
+
+const isValidFunc = (currentFile) => {
     const extension = currentFile.split(".")[1];
     if(state.validExt.includes(extension)){
         state.isValid = true;
@@ -32,17 +33,27 @@ form.addEventListener("submit", async (e) => {
         body: new FormData(form)
     });
 
-    const result = await response.json();
+    let {isValid, currentFile, isZipped} = state
+    isValid = false;
+    currentFile = null;
+    isZipped = false;
+    successUnZip.classList.add("d-none");
+    successCalculate.classList.add("d-none");
+    successDecrypt.classList.add("d-none");
+    result.innerHTML = "";
+
+    const data = await response.json();
     console.log(result);
     success.classList.remove("d-none");
-    success.innerHTML += " size: " + result.size;
+    success.innerHTML += " size: " + data.size;
 
-    state.currentFile = result.fileName;
-    isValid(state.currentFile);
+    state.currentFile = data.fileName;
+    isValidFunc(state.currentFile);
 
-    if(result.fileName.split('.')[1] === "zip"){
+    if(data.fileName.split('.')[1] === "zip"){
         state.isZipped = true;
     }
+    currentFileElem.innerHTML = state.currentFile || "..."
         // success.classList.remove("d-none", "text-success ");
         // success.classList.add("text-danger");
         // success.innerHTML = "file not fount ";
@@ -64,6 +75,7 @@ unzip.addEventListener("click", async () => {
         if(state.currentFile.split('.')[1] !== "zip"){
             state.isZipped = false;
         }
+        currentFileElem.innerHTML = state.currentFile || "..."
     } else {
         successUnZip.classList.remove("d-none", "text-success");
         successUnZip.classList.add("text-danger");
@@ -83,6 +95,7 @@ decryptButton.addEventListener("click", async () => {
         successDecrypt.classList.remove("d-none", "text-danger");
         successDecrypt.classList.add("text-success");
         successDecrypt.innerHTML = "OK";
+        currentFileElem.innerHTML = state.currentFile || "..."
     } else {
         successDecrypt.classList.remove("d-none", "text-success");
         successDecrypt.classList.add("text-danger");
@@ -101,19 +114,27 @@ calculateButton.addEventListener("click", async () => {
     successCalculate.classList.remove("d-none", "text-danger");
     successCalculate.classList.add("text-success");
     successCalculate.innerHTML = "OK";
+    currentFileElem.innerHTML = state.currentFile || "..."
+    console.log(state);
 })
 
 
 
 const showResults = (expressions) => {
-   return expressions.join("\n");
+   const ul = document.createElement("ul");
+   expressions.forEach((exp) => {
+       const li = document.createElement("li");
+       li.innerHTML = exp;
+       ul.append(li);
+   })
+   return ul;
 }
 
 downloadButton.addEventListener("click", async () => {
    // try {
         const response = await fetch("/downloadFile/" + state.currentFile);
         const data = await response.json();
-        result.innerHTML = showResults(data.expressions);
+        result.append(showResults(data.expressions));
         console.log(state);
     // }catch (e){
 
