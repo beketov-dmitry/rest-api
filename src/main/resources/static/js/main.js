@@ -105,6 +105,7 @@ decryptButton.addEventListener("click", async () => {
 })
 
 calculateButton.addEventListener("click", async () => {
+    if(!state.isZipped) {
     const response = await fetch("/calculate", {
         method: "POST",
         body: state.currentFile
@@ -115,6 +116,11 @@ calculateButton.addEventListener("click", async () => {
     successCalculate.classList.add("text-success");
     successCalculate.innerHTML = "OK";
     currentFileElem.innerHTML = state.currentFile || "..."
+    } else {
+        successCalculate.classList.remove("d-none", "text-success");
+        successCalculate.classList.add("text-danger");
+        successCalculate.innerHTML = "file is archivate"
+    }
     console.log(state);
 })
 
